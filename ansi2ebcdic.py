@@ -209,6 +209,7 @@ usstable_jcl = '''//{user_job:<8} JOB 'build usstable',
 //* Date: {date}
 //* Built using Soldier of FORTRANs ANSi to EBCDiC builder
 {ansi_info}
+{comd_args}
 //* After submitting this job you must refresh TN3270
 //* Use the following MVS command in SDSF:
 //* /vary tcpip,tn3270,obeyfile,dsn=user.tcpparms(tn3270)
@@ -328,6 +329,7 @@ netsol_jcl = '''//{user_job:<8} JOB  (SETUP),
 //* Date: {date}
 //* Built using Soldier of FORTRANs ANSi to EBCDiC builder
 {ansi_info}
+{comd_args}
 //* After submitting run the following to refresh VTAM in hercules
 //* console:
 //*
@@ -613,6 +615,7 @@ tk4_tso_jcl = '''//{user_job:<8} JOB  (ASSEMBLE),
 //* Date: {date}
 //* Built using Soldier of FORTRANs ANSi to EBCDiC builder
 {ansi_info}
+{comd_args}
 //* View your art after you submit this JCL with:
 //* CALL '{dataset}({member})'
 //**************************************
@@ -633,6 +636,7 @@ zos_tso_jcl = '''//{user_job:<8}   JOB (ASSY),'JOBBYJOB',CLASS=A,MSGCLASS=Y,
 //* Date: {date}
 //* Built using Soldier of FORTRANs ANSi to EBCDiC builder
 {ansi_info}
+{comd_args}
 //* View your art after you submit this JCL with:
 //* CALL '{dataset}({member})'
 //**************************************
@@ -897,6 +901,7 @@ class ANSITN3270:
         self.y = 1
         self.ansifile = os.path.basename(ansifile)
         self.ansi_info = "//*"
+        self.command_args = ""
         
         self.tk4 = tk4
         self.zos = zos
@@ -961,6 +966,7 @@ class ANSITN3270:
 
         try: 
             print("\n[+] ANSi File Info:\n")
+            print("    Original Title:\t{}".format(self.sauced.title.decode("utf-8")))
             print("    Original Author:\t{}".format(self.sauced.author.decode("utf-8")))
             print("    Original Group:\t{}".format(self.sauced.group.decode("utf-8")))
             print("    Original Date:\t{}".format(self.sauced.date.decode("utf-8")))
@@ -977,6 +983,7 @@ class ANSITN3270:
         
         self.ansi_state_machine(self.ansi)
         self.SAUCE_info()
+        self.command_args_info()
 
         if self.jcl == 'netsol':
             self.generate_cursor()
@@ -984,6 +991,7 @@ class ANSITN3270:
                                        logofile=self.member, 
                                        date=datetime.today().strftime('%d-%m-%Y'), 
                                        ansi_info=self.ansi_info,
+                                       comd_args=self.command_args,
                                        hlasm = self.hlasm.rstrip(),
                                        cursor = self.cursor_hlasm)
         if self.jcl == 'usstable':
@@ -993,6 +1001,7 @@ class ANSITN3270:
                                        logofile=self.member, 
                                        date=datetime.today().strftime('%d-%m-%Y'), 
                                        ansi_info=self.ansi_info,
+                                       comd_args=self.command_args,
                                        hlasm = self.hlasm.rstrip(),
                                        cursor = self.cursor_hlasm)
 
@@ -1004,6 +1013,7 @@ class ANSITN3270:
                                      member=self.member,
                                      date=datetime.today().strftime('%d-%m-%Y'),
                                      ansi_info=self.ansi_info,
+                                     comd_args=self.command_args,
                                      tso_hlasm=tso)
             else:
                 output = zos_tso_jcl.format(user_job=self.jobname,
@@ -1011,6 +1021,7 @@ class ANSITN3270:
                                      member=self.member,
                                      date=datetime.today().strftime('%d-%m-%Y'),
                                      ansi_info=self.ansi_info,
+                                     comd_args=self.command_args,
                                      tso_hlasm=tso)
                 
             
@@ -1071,6 +1082,18 @@ TK4MINP  DC    CL{}' '
         
         logger.debug("({},{}) cursor hlasm: \n{}".format(self.x, self.y,self.cursor_hlasm))
                                  
+    def command_args_info(self):
+            logger.debug("({},{}) Parsing arguments passed to script ".format(self.x, self.y))
+            line = "\n//* Command Line Args: "
+            for i in sys.argv[1:]:
+                if len(line) + len(i) >= 72:
+                    self.command_args += line + "\n"
+                    line = "//*                    " + i + " "
+                else:
+                    line += i + " "
+            self.command_args += line + "\n"
+            self.command_args += '//*'
+            #for i in whatever max length 48
 
     def SAUCE_info(self):
         try: 
@@ -1080,6 +1103,8 @@ TK4MINP  DC    CL{}' '
             logger.debug("({},{}) Original ANSi Group: {}".format(self.x, self.y, self.sauced.group.decode("utf-8")))
             logger.debug("({},{}) Original ANSi Date: {}".format(self.x, self.y, self.sauced.date.decode("utf-8")))
             self.ansi_info = "//*\n//* Original ANSi File:   {}\n".format(self.ansifile)
+            if self.sauced.title.decode("utf-8"):
+                self.ansi_info += "//* Original ANSi Title:  {}\n".format(self.sauced.title.decode("utf-8").replace("\x00",""))
             if self.sauced.author.decode("utf-8"):
                 self.ansi_info += "//* Original ANSi Artist: {}\n".format(self.sauced.author.decode("utf-8").replace("\x00",""))
             if self.sauced.group.decode("utf-8"):
@@ -1123,9 +1148,6 @@ TK4MINP  DC    CL{}' '
        
         if len(self.hlasm.splitlines()) > 1 and hlasm.rstrip() != self.hlasm.splitlines()[-1]:
             self.add_hlasm(hlasm)
-
-
-
 
     def parse_escape(self, escape, etype):
         logger.debug("({},{}) type: {} Sequence: {} (desc: {})".format(self.x, self.y, etype, escape[1:], escape_types[etype]))
