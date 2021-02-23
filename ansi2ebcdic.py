@@ -153,7 +153,7 @@ cp437_to_ebcdic = {
     'ÿ' : 'DF', # 0xff
     'ƒ' : '08', # 0x192
     '≈' : '08CA', # 0x2248 Doesn't exist
-    '∙' : '08A3', # 0x2219 
+    '∙' : '08A3', # 0x2219
     '¡' : 'AA', # 0xa1
     '¿' : 'AB', # 0xbf
     'â' : '42', # 0xe2
@@ -233,7 +233,7 @@ usstable_jcl = '''//{user_job:<8} JOB 'build usstable',
          DC    X'C3'       WCC
 {hlasm}
 {cursor}
-         &BFEND   EQU   *                       END OF MESSAGE
+&BFEND   EQU   *                       END OF MESSAGE
 .END     MEND
 *
 *
@@ -336,7 +336,7 @@ netsol_jcl = '''//{user_job:<8} JOB  (SETUP),
 //*     /Z NET,QUICK
 //*     /P SNASOL
 //*     /P JRP
-//* 
+//*
 //* Then the commands to bring the services back up are:
 //*
 //*     /S NET
@@ -370,7 +370,7 @@ netsol_jcl = '''//{user_job:<8} JOB  (SETUP),
 //*
 //* Then we create {logofile} with our new welcome screen
 //* After that we edit SYS1.UMODMAC(NETSOL) and make
-//* Changes needed 
+//* Changes needed
 //*
 //UPDATE  EXEC PGM=IEBUPDTE
 //SYSPRINT DD  SYSOUT=*
@@ -590,7 +590,7 @@ LWORKA   EQU  *-WORKAREA                                                67321240
 ISTNSC00 CSECT ,
          NETSOL SYSTEM=VS2
          END   ,
-//*         
+//*
 //* Then we link it and put it in SYS1.VTAMLIB(ISTNSC00)
 //*
 //LKED    EXEC PGM=IEWL,PARM='XREF,LIST,LET,NCAL',REGION=1024K
@@ -603,12 +603,12 @@ ISTNSC00 CSECT ,
 
 max_len = len('1234567890123456789012345678901234567890123456')
 
-tk4_tso_jcl = '''//{user_job:<8} JOB  (ASSEMBLE),                        
-//             'ASSEMBLE HLASM',                   
-//             CLASS=A,                            
-//             MSGCLASS=H,                         
-//             MSGLEVEL=(1,1),                     
-//             REGION=2048K                       
+tk4_tso_jcl = '''//{user_job:<8} JOB  (ASSEMBLE),
+//             'ASSEMBLE HLASM',
+//             CLASS=A,
+//             MSGCLASS=H,
+//             MSGLEVEL=(1,1),
+//             REGION=2048K
 //**************************************
 //*
 //* Desc: Assemble TSO EBCDiC art: {member}
@@ -619,13 +619,13 @@ tk4_tso_jcl = '''//{user_job:<8} JOB  (ASSEMBLE),
 //* View your art after you submit this JCL with:
 //* CALL '{dataset}({member})'
 //**************************************
-//AVENGERS EXEC ASMFCL,MAC='SYS2.MACLIB'                             
-//* ASSEMBLE!                                      
+//AVENGERS EXEC ASMFCL,MAC='SYS2.MACLIB'
+//* ASSEMBLE!
 //ASM.SYSIN DD *
 {tso_hlasm}
-//LKED.SYSLMOD DD DSN={dataset},DISP=SHR        
-//LKED.SYSIN DD *                                  
-  NAME {member}(R)                                   
+//LKED.SYSLMOD DD DSN={dataset},DISP=SHR
+//LKED.SYSIN DD *
+  NAME {member}(R)
 /*'''
 
 zos_tso_jcl = '''//{user_job:<8}   JOB (ASSY),'JOBBYJOB',CLASS=A,MSGCLASS=Y,
@@ -648,46 +648,46 @@ zos_tso_jcl = '''//{user_job:<8}   JOB (ASSY),'JOBBYJOB',CLASS=A,MSGCLASS=Y,
 //
 '''
 
-tso_hlasm = '''TN3270   CSECT ,                           
-         SAVE  (14,12),,*                  
-         LR    12,15                       
-         USING TN3270,12                   
-*                                          
-         LA    1,SAVEA                     
-         ST    1,8(,13)                    
-         ST    13,4(,1)                    
-         LR    13,1                        
-*                                          
+tso_hlasm = '''TN3270   CSECT ,
+         SAVE  (14,12),,*
+         LR    12,15
+         USING TN3270,12
+*
+         LA    1,SAVEA
+         ST    1,8(,13)
+         ST    13,4(,1)
+         LR    13,1
+*
          STFSMODE ON,INITIAL=YES,NOEDIT=YES
-         STTMPMD ON                        
-*                                          
-         TPUT  STREAM,STREAMLN,FULLSCR     
-*                                          
-         TGET  INBUF,INBUFLN,ASIS          
-*                                          
-         STLINENO LINE=1                   
-         STFSMODE OFF                      
-         STTMPMD OFF                       
-*                                          
-         L     13,4(,13)                   
-         LM    14,12,12(13)                
-         SLR   15,15                       
-         BR    14                          
-*                                          
-STREAM   DS    0C                          
-         DC    X'27'       ESCAPE CHAR     
-         DC    X'F5'       ERASE/WRITE             
-         DC    X'C3'       WCC             
+         STTMPMD ON
+*
+         TPUT  STREAM,STREAMLN,FULLSCR
+*
+         TGET  INBUF,INBUFLN,ASIS
+*
+         STLINENO LINE=1
+         STFSMODE OFF
+         STTMPMD OFF
+*
+         L     13,4(,13)
+         LM    14,12,12(13)
+         SLR   15,15
+         BR    14
+*
+STREAM   DS    0C
+         DC    X'27'       ESCAPE CHAR
+         DC    X'F5'       ERASE/WRITE
+         DC    X'C3'       WCC
          DC    X'114040'   SBA(1,1)
          DC    X'1DF8'     SF (PROT,HIGH INTENSITY)
 {hlasm}
 STREAMLN EQU   *-STREAM
-*                      
-*                      
-INBUF    DS    XL128   
-INBUFLN  EQU   *-INBUF 
-*                      
-SAVEA    DS    18F     
+*
+*
+INBUF    DS    XL128
+INBUFLN  EQU   *-INBUF
+*
+SAVEA    DS    18F
          END   ,'''
 
 
@@ -706,7 +706,7 @@ escape_types = {
     "J" : "Clear the screen/clear from cursor to end of screen",
     "K" : "Clear current line",
     "m" : "Set styles and colors from here onwards",
-    "h" : "Set screenmode"    
+    "h" : "Set screenmode"
 }
 
 ansi_color_escape_types = {
@@ -757,11 +757,11 @@ color_escape_to_3270 = {
         # x'F1' - Blink
         # x'F2' - Reverse video
         # x'F4' - Underscore
-        # x'F8' - Intensify (monochrome only) 
+        # x'F8' - Intensify (monochrome only)
     # attributes
     "0" : "280000",  # Resets all Extended and color attributes
     "2" : "280000",  # Resets all Extended and color attributes
-    "1" : "2841F8", 
+    "1" : "2841F8",
     "4" : "2841F4",
     "5" : "2841F1",
     "7" : "2841F2",
@@ -803,7 +803,7 @@ color_escape = {
       # x'42' Foreground color
       # x'45' Background color (though not supported by many)
         # x'F8'  Black
-        # x'F9'  Deep Blue  
+        # x'F9'  Deep Blue
         # x'FA'  Orange
         # x'FB'  Purple
         # x'FC'  Pale Green
@@ -891,7 +891,7 @@ intense_color_escape_types = {
 class ANSITN3270:
 
     def __init__(self, ansifile, filename=False, dataset='sys1.parmlib', member='AWESOME',
-                 jobname='killerb', tk4=True, zos=False, 
+                 jobname='killerb', tk4=True, zos=False,
                  row="23", column="20",input="20", color="PINK",
                  tso=True, netsol=False, usstable=False, extended=False):
 
@@ -902,7 +902,7 @@ class ANSITN3270:
         self.ansifile = os.path.basename(ansifile)
         self.ansi_info = "//*"
         self.command_args = ""
-        
+
         self.tk4 = tk4
         self.zos = zos
         self.jobname = jobname.upper()
@@ -910,12 +910,12 @@ class ANSITN3270:
         self.dataset = dataset.upper()
         self.member = member.upper()
         self.cursor = { 'loc': (row,column), 'spaces' : input, 'color' : color}
-        
+
         self.extended = extended
         self.bold = False
         self.current_fg = '(FG) White'
-        
-        
+
+
         if tso:
             self.jcl = 'tso'
         elif netsol:
@@ -933,7 +933,7 @@ class ANSITN3270:
         #Remove ANSI SAUCE record
         if self.ansi.rfind('\x1aSAUCE') >= 0:
             self.ansi = self.ansi[:self.ansi.rfind('SAUCE')-1]
-        
+
         #Parse the SAUCE record:
         self.sauced = SAUCE(ansifile)
 
@@ -964,7 +964,7 @@ class ANSITN3270:
             print("\tInput length:\t{}".format(input))
             print("\tInput Color:\t{}".format(color))
 
-        try: 
+        try:
             print("\n[+] ANSi File Info:\n")
             print("    Original Title:\t{}".format(self.sauced.title.decode("utf-8")))
             print("    Original Author:\t{}".format(self.sauced.author.decode("utf-8")))
@@ -973,33 +973,33 @@ class ANSITN3270:
         except:
             print("    No ANSi file information available")
 
-        print("\n\n") 
+        print("\n\n")
 
 
         self.generate_output()
 
 
     def generate_output(self):
-        
+
         self.ansi_state_machine(self.ansi)
         self.SAUCE_info()
         self.command_args_info()
 
         if self.jcl == 'netsol':
             self.generate_cursor()
-            output = netsol_jcl.format(user_job=self.jobname, 
-                                       logofile=self.member, 
-                                       date=datetime.today().strftime('%d-%m-%Y'), 
+            output = netsol_jcl.format(user_job=self.jobname,
+                                       logofile=self.member,
+                                       date=datetime.today().strftime('%d-%m-%Y'),
                                        ansi_info=self.ansi_info,
                                        comd_args=self.command_args,
                                        hlasm = self.hlasm.rstrip(),
                                        cursor = self.cursor_hlasm)
         if self.jcl == 'usstable':
             self.generate_cursor()
-            output = usstable_jcl.format(user_job=self.jobname, 
+            output = usstable_jcl.format(user_job=self.jobname,
                                        dataset=self.dataset,
-                                       logofile=self.member, 
-                                       date=datetime.today().strftime('%d-%m-%Y'), 
+                                       logofile=self.member,
+                                       date=datetime.today().strftime('%d-%m-%Y'),
                                        ansi_info=self.ansi_info,
                                        comd_args=self.command_args,
                                        hlasm = self.hlasm.rstrip(),
@@ -1023,8 +1023,8 @@ class ANSITN3270:
                                      ansi_info=self.ansi_info,
                                      comd_args=self.command_args,
                                      tso_hlasm=tso)
-                
-            
+
+
         if not self.filename:
             print("\n[+] Printing JCL + HLASM")
             print("\n---------------------------- ><8 CUT AFTER HERE 8>< ----------------------------\n")
@@ -1053,38 +1053,38 @@ TK4MINP  DC    CL{}' '
          DC    {}C' '
          DC    X'280000'
          DC    X'1DF8'     SF (PROT,HIGH INTENSITY)'''
-        
+
         arg_colors ={
-                "WHITE" : 'F7', "RED" : 'F2', "GREEN" : 'F4', "YELLOW" : 'F6', 
+                "WHITE" : 'F7', "RED" : 'F2', "GREEN" : 'F4', "YELLOW" : 'F6',
                 "BLUE" : 'F1', "PINK" : 'F3', "TURQ" : 'F5'
             }
-        
+
         logger.debug("({},{}) Generating Cursor (IC)".format(self.x, self.y))
         logger.debug("({},{}) Cursor Location: {}".format(self.x, self.y, self.cursor['loc']))
         logger.debug("({},{}) Input Length: {}".format(self.x, self.y, self.cursor['spaces']))
         logger.debug("({},{}) Cursor Color: {}".format(self.x, self.y, self.cursor['color']))
-        
+
         if self.jcl == 'netsol':
-            self.cursor_hlasm = tk4_cursor_input.format(self.cursor['loc'][0], 
+            self.cursor_hlasm = tk4_cursor_input.format(self.cursor['loc'][0],
                                                        self.cursor['loc'][1],
-                                                       arg_colors[self.cursor['color']], 
+                                                       arg_colors[self.cursor['color']],
                                                        self.cursor['color'],
                                                        self.cursor['spaces'])
 
         if self.jcl == 'usstable':
             sba = self.calculate_sba(int(self.cursor['loc'][0]), int(self.cursor['loc'][1]))
-            self.cursor_hlasm = uss_cursor_input.format(sba, 
-                                                       self.cursor['loc'][0], 
+            self.cursor_hlasm = uss_cursor_input.format(sba,
+                                                       self.cursor['loc'][0],
                                                        self.cursor['loc'][1],
-                                                       arg_colors[self.cursor['color']], 
+                                                       arg_colors[self.cursor['color']],
                                                        self.cursor['color'],
                                                        self.cursor['spaces'])
-        
+
         logger.debug("({},{}) cursor hlasm: \n{}".format(self.x, self.y,self.cursor_hlasm))
-                                 
+
     def command_args_info(self):
             logger.debug("({},{}) Parsing arguments passed to script ".format(self.x, self.y))
-            line = "\n//* Command Line Args: "
+            line = "//* Command Line Args: "
             for i in sys.argv[1:]:
                 if len(line) + len(i) >= 72:
                     self.command_args += line + "\n"
@@ -1096,7 +1096,7 @@ TK4MINP  DC    CL{}' '
             #for i in whatever max length 48
 
     def SAUCE_info(self):
-        try: 
+        try:
             logger.debug("({},{}) Parsing SAUCE records".format(self.x, self.y))
             logger.debug("({},{}) Original ANSi File: {}".format(self.x, self.y, self.ansifile))
             logger.debug("({},{}) Original ANSi Artist: {}".format(self.x, self.y, self.sauced.author.decode("utf-8")))
@@ -1145,7 +1145,7 @@ TK4MINP  DC    CL{}' '
             hlasm = sba_macro.format(self.x,self.y)
         else:
             hlasm = sba_hex.format(self.calculate_sba(self.x, self.y), self.x, self.y)
-       
+
         if len(self.hlasm.splitlines()) > 1 and hlasm.rstrip() != self.hlasm.splitlines()[-1]:
             self.add_hlasm(hlasm)
 
@@ -1156,18 +1156,18 @@ TK4MINP  DC    CL{}' '
 
         if etype == 'm':
             logger.debug("({},{}) Color Escape Sequence".format(self.x, self.y))
-            
+
             if not self.extended:
-                
+
                 for sequence in escape[1:].split(";"):
                     debug_buffer += ansi_color_escape_types[sequence] + " "
                     SA_buffer += color_escape_to_3270[sequence]
-            
+
             else:
                 logger.debug("({},{}) Current FG: {} Bold: {}".format(self.x, self.y, self.current_fg, self.bold))
 
                 for sequence in escape[1:].split(";"):
-                
+
                     if sequence == '0':
                         if self.bold:
                             self.bold = False
@@ -1196,7 +1196,7 @@ TK4MINP  DC    CL{}' '
                             if self.current_fg in intense_color_escape.values():
                                 esc_key = (list(intense_color_escape.keys())[list(intense_color_escape.values()).index(self.current_fg)])
                                 SA_buffer += color_escape_types[esc_key]
-                            
+
                         #SA_buffer += color_escape_to_3270[sequence]
                         debug_buffer += ansi_color_escape_types[sequence] + " "
                         bold = True
@@ -1213,15 +1213,15 @@ TK4MINP  DC    CL{}' '
                             SA_buffer += color_escape[sequence]
                             if int(sequence) < 40:
                                 self.current_fg = color_escape_types[sequence]
-                    
 
-            
+
+
             logger.debug("({},{}) {} (SA: {})".format(self.x, self.y, debug_buffer, SA_buffer))
 
             self.add_sba()
 
             self.add_hlasm("* ({},{}) {}\n         DC    X'{}'\n".format(self.x, self.y,debug_buffer,SA_buffer))
-            
+
             return
 
         if etype in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'R', 'H']:
@@ -1254,7 +1254,7 @@ TK4MINP  DC    CL{}' '
                 self.y = num
                 logger.debug("({x},{y}) Move cursor to column {c}".format(x=self.x, y=self.y, c=num))
             elif etype == "R" or etype == "H":
-                new_x, new_y = list(map(int, escape[1:].split(";")))    
+                new_x, new_y = list(map(int, escape[1:].split(";")))
                 logger.debug("({x},{y}) Move cursor to new {new_x},{new_y}".format(x=self.x, y=self.y, new_x=new_x,new_y=new_y))
                 self.x = new_x
                 self.y = new_y
@@ -1317,22 +1317,22 @@ TK4MINP  DC    CL{}' '
             for cstring in compressed:
                 l = cstring[1]
                 string = wrap(cstring[0], max_len, drop_whitespace=False)
-                    
+
                 if l >= 5:
                     for s in string:
-                        hlasm += dc_c_num.format(l,s) 
+                        hlasm += dc_c_num.format(l,s)
                 else:
                     for s in string:
                         hlasm += dc_c.format(s)
-            
-            
+
+
             self.add_hlasm(hlasm)
         return
 
     def add_hlasm(self, hlasm):
         logger.debug("({},{}) adding hlasm: \n{}".format(self.x, self.y,hlasm.rstrip()))
         self.hlasm += hlasm
-        
+
 
     def ansi_state_machine(self, ansi):
 
@@ -1371,7 +1371,7 @@ TK4MINP  DC    CL{}' '
                 ascii_text = ''
                 self.escaped = True
                 continue
-            
+
             if self.escaped and byte not in escape_types:
                 escape_sequence += byte
                 continue
@@ -1384,18 +1384,18 @@ TK4MINP  DC    CL{}' '
 
             if not self.graphic and (byte in cp437_to_ebcdic or ord(byte) in  cp437_to_ebcdic):
                 #logger.debug("({},{}) [Graphic found] Adding '{}' to graphic buffer".format(self.x, self.y, byte))
-                #if len(ascii_text) > 0: 
+                #if len(ascii_text) > 0:
                     #logger.debug("({},{}) Previous String: '{}'".format(self.x, self.y, ascii_text))
                 # Switch to graphic mode
                 # print whatever strings we have collected thats arent graphic mode:
                 self.print_ascii(ascii_text)
                 self.graphic = True
                 ascii_text = byte
-                          
+
             elif self.graphic and (byte in cp437_to_ebcdic or ord(byte) in  cp437_to_ebcdic):
                 ascii_text += byte
                 #logger.debug("({},{}) [Graphic continuing] Adding '{}' to graphic buffer".format(self.x, self.y, byte))
-                            
+
             elif self.graphic and byte not in cp437_to_ebcdic:
                 #logger.debug("({},{}) Gaphic mode done switching to ASCII".format(self.x, self.y, byte))
                 #logger.debug("({},{}) Adding '{}' to ASCII buffer".format(self.x, self.y, byte))
@@ -1428,12 +1428,12 @@ TK4MINP  DC    CL{}' '
         self.x = (self.x + num) % 25
         if self.x == 0:
             self.x += 1
-        
+
     def dec_x(self, num=1):
         self.x = (self.x - num) % 25
         if self.x == 0:
             self.x += 1
-    
+
     def calculate_sba(self, x, y):
         logger.debug("({},{}) Calculating SBA {},{}".format(self.x, self.y, x, y))
         tn3270_ba = [
@@ -1462,8 +1462,8 @@ arg_colors = ["WHITE", "RED", "GREEN", "YELLOW", "BLUE", "PINK", "TURQ"]
 graphic_colors = "Black Deep blue Orange Purple Pale green Pale turquoise Grey"
 
 desc = '''ANSi art to EBCDiC'''
-arg_parser = argparse.ArgumentParser(description=desc, 
-                    usage='%(prog)s [options] [ANSI file]', 
+arg_parser = argparse.ArgumentParser(description=desc,
+                    usage='%(prog)s [options] [ANSI file]',
                     epilog="Check out https://16colo.rs for some great art",
                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 arg_parser.add_argument('-d', '--debug', help="Print lots of debugging statements", action="store_const", dest="loglevel", const=logging.DEBUG, default=logging.WARNING)
@@ -1483,7 +1483,7 @@ action = arg_parser.add_mutually_exclusive_group(required=True)
 action.add_argument('--tso', action='store_true', help='Creates a TSO program you can use with "call"')
 action.add_argument('--netsol', action='store_true', help='Creates the JCL required to replace the TK4 VTAM screen')
 action.add_argument('--usstable', action='store_true', help='Creates the JCL to make a USSTABLE')
-args = arg_parser.parse_args()	
+args = arg_parser.parse_args()
 
 if args.tso and (not args.tk4 and not args.zos):
     arg_parser.error("--tso requires either --tk4 or --zos")
@@ -1514,9 +1514,9 @@ ch.setLevel(args.loglevel)
 # Add the Handler to the Logger
 logger.addHandler(ch)
 
-ANSITN3270(ansifile=args.ansi_file, 
+ANSITN3270(ansifile=args.ansi_file,
           filename=args.file, dataset=args.dataset, member=args.member,
-          jobname=args.jobname, tk4=args.tk4, zos=args.zos, 
+          jobname=args.jobname, tk4=args.tk4, zos=args.zos,
           row=args.ROW, column=args.COL,input=args.input, color=args.color,
           tso=args.tso, netsol=args.netsol, usstable=args.usstable, extended=args.extended)
 
