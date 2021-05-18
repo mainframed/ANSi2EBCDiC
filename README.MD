@@ -13,11 +13,30 @@ This python script does a little bit more than converting ANSi art to EBCDiC but
 
 This script will take any ANSi art you can find/create and convert it in to the HLASM/JCL you need to display the art in TN3270. Some great ANSi/ASCii art can be found at https://16colo.rs 
 
+## Installation
+
+ANSi2EBCDIC requires Python3 and the library [SAUCE](https://github.com/tehmaze/sauce).
+Due to the SAUCE library not having a Python3 Pypi release right now, the installation
+is a bit messy.
+
+You can install and run ANSi2EBCDIC like this:
+
+```bash
+$ git clone https://github.com/mainframed/ANSi2EBCDiC.git
+$ cd ANSi2EBCDiC
+$ python3 -m venv app
+$ git clone https://github.com/tehmaze/sauce.git
+$ (cd sauce && ../app/bin/python3 setup.py install)
+$ app/bin/python3 ansi2ebcdic.py --help
+```
+
+## Usage
+
 The output produced by this script will assemble and link your program and place it where it needs to go so you can use it in VTAM usstables (z/OS and TK4-) or just run it from TSO.
 
 This script gives you multiple options and works on z/OS as well as TK4- (running on hercules). These options can be broken down as the following:
 
-## --usstable
+### --usstable
 
 If you're running your own zPDT z/OS mainframe, or you just want to spruce up your corporate mainframe this option will take whatever ANSi art you pass it and convert it to the HLASM/JCL needed to make a valid USS Table for VTAM.
 
@@ -43,7 +62,7 @@ You also need to supply a dataset with `--dataset`, this is where the assembled 
 
 Once uploaded with either FTP or IND$FILE, you need to submit the job with `submit` in ISPF, then you need to refresh and reload the USS Table. To do this use the MVS command: `vary tcpip,tn3270,obeyfile,dsn=user.tcpparms(tn3270)`, replace `USER.TCPPARM(TN3270)` with the location of your actual TN3270 settings. To do this on ADCD, in ISPF enter the command `=sd` and hit enter. Then type `/` hit enter, then enter the command `vary tcpip,tn3270,obeyfile,dsn=user.tcpparms(tn3270)`.
 
-## --netsol
+### --netsol
 
 This is for use on TK4- (or potentially any MVS 3.8j implementation but has only been tested on TK4-). This replaces the standard MVS TK4- VTAM screen with the ansi art supplied. This script will automatically generate the JCL you need to create your own VTAM netsol screen. It keeps the terminal ID/dat and time in the upper left/right of the terminal.
 
@@ -69,7 +88,7 @@ Once you've uploaded (using FTP or IND$FILE) the JCL, submit it in TK4- with `su
      /S JRP
 ```
 
-## --tso
+### --tso
 
 If you don't want to change your VTAM terminals but instead just want to show off some amazing ANSI art (for example in a TSO exit, or for use with logon procs, or you just want to call it yourself) you can use the `--tso` argument. 
 
@@ -82,13 +101,13 @@ By default the script stores the assembled output in `ANSI.ART(ANSIART)`. To cha
 Once the script is done you can upload your HLASM/JCL with FTP or IND$FILE and submit the JCL. To view the art, in TSO use the command `CALL ANSI.ART(ANSIART)` using the `--dataset` and `--member` if you changed those.
 
 
-## Optional arguments
+### Optional arguments
 
-### Output File:
+#### Output File:
 
 By default this script will display the HLASM to the terminal. If you want to save it to a file use the `--file` argument.
 
-### Extended colors
+#### Extended colors
 
 By default most TN3270 emulators only support the colors: white, red, green, yellow, blue, pink, and turquoise. On some emulators, for example `x3270` you can get extra the extra colors: black, deep blue, orange, purple, pale green, pale turquoise, and grey. 
 
