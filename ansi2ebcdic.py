@@ -316,6 +316,94 @@ END      USSEND
   NAME {logofile}(R)
 //*'''
 
+sysgen_jcl = '''//{user_job:<8} JOB  (SETUP),
+//             'Build Netsol',
+//             CLASS=A,
+//             MSGCLASS=X,
+//             MSGLEVEL=(1,1),
+//             COND=(0,NE)
+//********************************************************************
+//*
+//* Desc: Build new NETSOL logon screen: {logofile}
+//* Date: {date}
+//* Built using Soldier of FORTRANs ANSi to EBCDiC builder
+{ansi_info}
+{comd_args}
+//* After submitting run the following to refresh VTAM in hercules
+//* console:
+//*
+//*     /Z NET,QUICK
+//*     /P SNASOL
+//*     /P JRP
+//*
+//* Then the commands to bring the services back up are:
+//*
+//*     /S NET
+//*     /S SNASOL
+//*     /S JRP
+//*
+//********************************************************************
+//*
+//* First delete the previous version if it exists
+//*
+//CLEANUP EXEC PGM=IDCAMS
+//SYSPRINT DD  SYSOUT=*
+//SYSIN    DD  *
+ DELETE SYS1.UMODMAC({logofile})
+ SET MAXCC=0
+ SET LASTCC=0
+//*
+//* Then we "compress" SYS1.UMODMAC to free up space
+//*
+//COMP    EXEC COMPRESS,LIB='SYS1.UMODMAC'
+//*
+//* THEN WE COPY THE ORIGINAL NETSOL SOURCE FROM SYS1.AMACLIB
+//* TO SYS1.UMODMAC
+//*
+//UMODMAC  EXEC PGM=IEBGENER
+//SYSIN    DD DUMMY
+//SYSPRINT DD SYSOUT=*
+//SYSUT1   DD DISP=SHR,DSN=SYS1.AMACLIB(NETSOL)
+//SYSUT2   DD DISP=SHR,DSN=SYS1.UMODMAC(NETSOL)
+//*
+//* THEN WE UPDATE SYS1.UMODMAC(NETSOL) TO DISPLAY OUR CUSTOM 3270
+//*
+//UPDATE   EXEC PGM=IEBUPDTE
+//SYSPRINT DD SYSOUT=*
+//SYSUT1   DD DISP=SHR,DSN=SYS1.UMODMAC
+//SYSUT2   DD DISP=SHR,DSN=SYS1.UMODMAC
+//SYSIN    DD DATA,DLM=$$
+./ ADD NAME={logofile}
+* NETSOL screen created by ANSi2EBCDiC.py
+         PUSH  PRINT
+         PRINT OFF
+EGMSG    DS 0C EGMSG
+{hlasm}
+{cursor}
+         $SBA  (24,80)
+         $SF   (SKIP,HI)
+EGMSGLN EQU *-EGMSG
+         POP   PRINT
+./ CHANGE NAME=NETSOL
+         CLI   MSGINDEX,X'0C'                                           23164802
+         BNE   EGSKIP                                                   23164804
+         LA    R3,EGMSGLN                                               23164808
+         L     R4,=A(EGMSG)                                             23164810
+*                                                                       23164812
+         WRITE RPL=(PTRRPL),                                           X23164814
+               OPTCD=(LBT,ERASE),                                      X23164816
+               AREA=(R4),                                              X23164818
+               RECLEN=(R3),                                            X23164820
+               EXIT=WRITEND                                             23164822
+*                                                                       23164824
+         B EGOK                                                         23164826
+*                                                                       23164828
+*                                                                       23164830
+EGSKIP   DS 0H EGSKIP                                                   23164832
+EGOK     DS 0H EGOK                                                     23166010
+         COPY {logofile:<8}                    , logon screen copy book      66810010
+$$
+'''
 
 netsol_jcl = '''//{user_job:<8} JOB  (SETUP),
 //             'Build Netsol',
@@ -893,7 +981,8 @@ class ANSITN3270:
     def __init__(self, ansifile, filename=False, dataset='sys1.parmlib', member='AWESOME',
                  jobname='killerb', tk4=True, zos=False,
                  row="23", column="20",input="20", color="PINK",
-                 tso=True, netsol=False, usstable=False, extended=False):
+                 tso=True, netsol=False, sysgen=False, usstable=False,
+                 extended=False):
 
         self.hlasm = ''
         self.cursor_hlasm = ''
@@ -920,6 +1009,10 @@ class ANSITN3270:
             self.jcl = 'tso'
         elif netsol:
             self.jcl = 'netsol'
+            self.tk4 = True
+            self.zos = False
+        elif sysgen:
+            self.jcl = 'sysgen'
             self.tk4 = True
             self.zos = False
         elif usstable:
@@ -985,6 +1078,15 @@ class ANSITN3270:
         self.SAUCE_info()
         self.command_args_info()
 
+        if self.jcl == 'sysgen':
+            self.generate_cursor()
+            output = sysgen_jcl.format(user_job=self.jobname,
+                                       logofile=self.member,
+                                       date=datetime.today().strftime('%d-%m-%Y'),
+                                       ansi_info=self.ansi_info,
+                                       comd_args=self.command_args,
+                                       hlasm = self.hlasm.rstrip(),
+                                       cursor = self.cursor_hlasm)
         if self.jcl == 'netsol':
             self.generate_cursor()
             output = netsol_jcl.format(user_job=self.jobname,
@@ -1042,7 +1144,7 @@ class ANSITN3270:
          DC    X'2842{}'  SA COLOR {}
          $SF   (UNPROT,HI)
          $IC
-TK4MINP  DC    CL{}' '
+         DC    CL{}' '
          DC    X'280000'
          DC    X'1DF8'     SF (PROT,HIGH INTENSITY)'''
 
@@ -1064,7 +1166,7 @@ TK4MINP  DC    CL{}' '
         logger.debug("({},{}) Input Length: {}".format(self.x, self.y, self.cursor['spaces']))
         logger.debug("({},{}) Cursor Color: {}".format(self.x, self.y, self.cursor['color']))
 
-        if self.jcl == 'netsol':
+        if self.jcl == 'netsol' or self.jcl == 'sysgen':
             self.cursor_hlasm = tk4_cursor_input.format(self.cursor['loc'][0],
                                                        self.cursor['loc'][1],
                                                        arg_colors[self.cursor['color']],
@@ -1248,7 +1350,7 @@ TK4MINP  DC    CL{}' '
                 logger.debug("({x},{y}) Move cursor down {c} and left {y}".format(x=self.x, y=self.y, c=num))
             elif etype == "F":
                 self.reset_y()
-                self.dec_x(inum-1)
+                self.dec_x(num-1)
                 logger.debug("({x},{y}) Move cursor up {c} and left {y}".format(x=self.x, y=self.y, c=num))
             elif etype == "G":
                 self.y = num
@@ -1468,10 +1570,10 @@ arg_parser = argparse.ArgumentParser(description=desc,
                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 arg_parser.add_argument('-d', '--debug', help="Print lots of debugging statements", action="store_const", dest="loglevel", const=logging.DEBUG, default=logging.WARNING)
 arg_parser.add_argument('--file', help="Save HLASM/JCL to a file instead of STDOUT", default=False)
-arg_parser.add_argument('--member', help="Member name of the assembled art that will be placed in --dataset", default='ANSIART')
 arg_parser.add_argument('--dataset', help="Location where the assembled art member will be stored, must be a PDS", default='ANSI.ART')
-arg_parser.add_argument('--jobname', help="The name of the job on the jobcard (//jobname)", default='AWESOME')
-arg_parser.add_argument('--tk4', help="Generates the required JCL and HLASM to create your program on TK4 TSO", action='store_true')
+arg_parser.add_argument('--member', help="Member name of the assembled art that will be placed in --dataset", default='ANSIART')
+arg_parser.add_argument('--jobname', help="The name of the job on the jobcard (e.g. //JOBNAME)", default='AWESOME')
+arg_parser.add_argument('--tk4', help="Generates the required JCL and HLASM to create your program on MVS 3.8j TSO", action='store_true')
 arg_parser.add_argument('--zos', help="Generates the required JCL and HLASM to create your program on z/OS TSO", action='store_true')
 arg_parser.add_argument('--ROW', help="Cursor location for user input row", default="23")
 arg_parser.add_argument('--COL', help="Cursor location for user input column", default="20")
@@ -1482,6 +1584,7 @@ arg_parser.add_argument("ansi_file", help="Your ANSI art file you wish to conver
 action = arg_parser.add_mutually_exclusive_group(required=True)
 action.add_argument('--tso', action='store_true', help='Creates a TSO program you can use with "call"')
 action.add_argument('--netsol', action='store_true', help='Creates the JCL required to replace the TK4 VTAM screen')
+action.add_argument('--sysgen', action='store_true', help='Creates the JCL required to replace the SYSGEN VTAM screen')
 action.add_argument('--usstable', action='store_true', help='Creates the JCL to make a USSTABLE')
 args = arg_parser.parse_args()
 
@@ -1518,7 +1621,8 @@ ANSITN3270(ansifile=args.ansi_file,
           filename=args.file, dataset=args.dataset, member=args.member,
           jobname=args.jobname, tk4=args.tk4, zos=args.zos,
           row=args.ROW, column=args.COL,input=args.input, color=args.color,
-          tso=args.tso, netsol=args.netsol, usstable=args.usstable, extended=args.extended)
+          tso=args.tso, netsol=args.netsol, sysgen=args.sysgen,
+          usstable=args.usstable, extended=args.extended)
 
 
 
