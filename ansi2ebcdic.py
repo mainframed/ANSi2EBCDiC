@@ -320,8 +320,7 @@ sysgen_jcl = '''//{user_job:<8} JOB  (SETUP),
 //             'Build Netsol',
 //             CLASS=A,
 //             MSGCLASS=X,
-//             MSGLEVEL=(1,1),
-//             COND=(0,NE)
+//             MSGLEVEL=(1,1)
 //********************************************************************
 //*
 //* Desc: Build new NETSOL logon screen: {logofile}
@@ -332,15 +331,12 @@ sysgen_jcl = '''//{user_job:<8} JOB  (SETUP),
 //* After submitting run the following to refresh VTAM in hercules
 //* console:
 //*
+//*     /P TSO
 //*     /Z NET,QUICK
-//*     /P SNASOL
-//*     /P JRP
 //*
-//* Then the commands to bring the services back up are:
+//* Then the commands to bring the services back is:
 //*
 //*     /S NET
-//*     /S SNASOL
-//*     /S JRP
 //*
 //********************************************************************
 //*
@@ -378,6 +374,8 @@ sysgen_jcl = '''//{user_job:<8} JOB  (SETUP),
          PUSH  PRINT
          PRINT OFF
 EGMSG    DS 0C EGMSG
+         $WCC  (RESETKBD,MDT)
+         $SBA  (1,1)
 {hlasm}
 {cursor}
          $SBA  (24,80)
@@ -403,7 +401,36 @@ EGSKIP   DS 0H EGSKIP                                                   23164832
 EGOK     DS 0H EGOK                                                     23166010
          COPY {logofile:<8}                    , logon screen copy book      66810010
 $$
-'''
+//*
+//* With that done its time to assemble our new screen
+//* We assemble SYS1.UMODMAC(NETSOL) with IFOX00
+//*
+//ASM     EXEC PGM=IFOX00,REGION=1024K
+//SYSLIB   DD  DISP=SHR,DSN=SYS1.UMODMAC,DCB=LRECL=32720
+//         DD  DISP=SHR,DSN=SYS2.MACLIB
+//         DD  DISP=SHR,DSN=SYS1.MACLIB
+//         DD  DISP=SHR,DSN=SYS1.AMODGEN
+//SYSUT1   DD  UNIT=VIO,SPACE=(1700,(600,100))
+//SYSUT2   DD  UNIT=VIO,SPACE=(1700,(300,50))
+//SYSUT3   DD  UNIT=VIO,SPACE=(1700,(300,50))
+//SYSPRINT DD  SYSOUT=*,DCB=BLKSIZE=1089
+//SYSPUNCH DD  DISP=(NEW,PASS,DELETE),
+//             UNIT=VIO,SPACE=(TRK,(2,2)),
+//             DCB=(BLKSIZE=80,LRECL=80,RECFM=F)
+//SYSIN    DD  *
+ISTNSC00 CSECT ,
+         NETSOL SYSTEM=VS2
+         END   ,
+//*
+//* Then we link it and put it in SYS1.VTAMLIB(ISTNSC00)
+//*
+//LKED    EXEC PGM=IEWL,PARM='XREF,LIST,LET,NCAL',REGION=1024K
+//SYSPRINT DD  SYSOUT=*
+//SYSLIN   DD  DISP=(OLD,DELETE,DELETE),DSN=*.ASM.SYSPUNCH
+//SYSLMOD  DD  DISP=SHR,DSN=SYS1.VTAMLIB(ISTNSC00)
+//SYSUT1   DD  UNIT=VIO,SPACE=(1024,(200,20))
+//*
+//'''
 
 netsol_jcl = '''//{user_job:<8} JOB  (SETUP),
 //             'Build Netsol',
