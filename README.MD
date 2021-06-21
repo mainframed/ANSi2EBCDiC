@@ -64,7 +64,7 @@ Once uploaded with either FTP or IND$FILE, you need to submit the job with `subm
 
 ## --sysgen
 
-This is for use on Jay Moseley's SYSGEN or the [automated sysgen](https://github.com/MVS-sysgen/sysgen). This replaces the standard MVS VTAM screen with the ansi art supplied. This script will automatically generate the JCL you need to create your own VTAM netsol screen.
+This is for use on Jay Moseley's SYSGEN or the [automated sysgen](https://github.com/MVS-sysgen/sysgen). This replaces the standard MVS VTAM screen with the ansi art supplied. This script will automatically generate the JCL you need to create your own VTAM netsol screen. **Note:** You must install the optional `SYS2.MACLIBS` for this to work. To install you can type `INSTALL MACLIBS` in TSO. 
 
 Unlike usstable, you don't need to supply a dataset name as the dataset use to store the compiled uss table is stored in `SYS1.VTAMLIB(ISTNSC00)`. The source HLASM generated is stored in the member name supplied by `--member` in `SYS1.UMODMAC`.
 
