@@ -821,7 +821,8 @@ escape_types = {
     "J" : "Clear the screen/clear from cursor to end of screen",
     "K" : "Clear current line",
     "m" : "Set styles and colors from here onwards",
-    "h" : "Set screenmode"
+    "h" : "Set screenmode",
+    "t" : "Mystery"
 }
 
 ansi_color_escape_types = {
@@ -1283,7 +1284,7 @@ class ANSITN3270:
         debug_buffer = ''
         SA_buffer = ''
 
-        if etype == 'm':
+        if etype in ['m']:
             logger.debug("({},{}) Color Escape Sequence".format(self.x, self.y))
 
             if not self.extended:
