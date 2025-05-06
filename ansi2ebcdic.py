@@ -387,7 +387,8 @@ EGMSGLN EQU *-EGMSG
          BE    SPECLMSG                                                 23164803
          CLI   MSGINDEX,X'02'                                           23164804
          BNE   EGSKIP                                                   23164805
-SPECLMSG DS    0H                                                       23164806         LA    R3,EGMSGLN                                               23164808
+SPECLMSG DS    0H                                                       23164806
+         LA    R3,EGMSGLN                                               23164808
          L     R4,=A(EGMSG)                                             23164810
 *                                                                       23164812
          WRITE RPL=(PTRRPL),                                           X23164814
