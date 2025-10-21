@@ -766,6 +766,28 @@ zos_tso_jcl = '''//{user_job:<8}   JOB (ASSY),'JOBBYJOB',CLASS=A,MSGCLASS=Y,
 //
 '''
 
+mvsce_tso_jcl = '''//{user_job:<8}   JOB (ASSY),'JOBBYJOB',CLASS=A,MSGCLASS=Y,
+//         NOTIFY=&SYSUID,MSGLEVEL=(1,1)
+//**************************************
+//*
+//* Desc: Assemble TSO EBCDiC art: {member}
+//* Date: {date}
+//* Built using Soldier of FORTRANs ANSi to EBCDiC builder
+{ansi_info}
+{comd_args}
+//* View your art after you submit this JCL with:
+//* CALL '{dataset}({member})'
+//**************************************
+//AVENGERS EXEC ASMFCL,MAC='SYS2.MACLIB'
+//* ASSEMBLE!
+//ASM.SYSIN DD *
+{tso_hlasm}
+/*
+//LKED.SYSLMOD DD DSN={dataset},DISP=SHR
+//LKED.SYSIN DD *
+  NAME {member}(R)
+'''
+
 tso_hlasm = '''TN3270   CSECT ,
          SAVE  (14,12),,*
          LR    12,15
@@ -1013,7 +1035,7 @@ class ANSITN3270:
                  jobname='killerb', tk4=True, zos=False,
                  row="23", column="20",input="20", color="PINK",
                  tso=True, netsol=False, sysgen=False, usstable=False,
-                 extended=False):
+                 extended=False,mvsce=False):
 
         self.hlasm = ''
         self.cursor_hlasm = ''
@@ -1025,6 +1047,7 @@ class ANSITN3270:
 
         self.tk4 = tk4
         self.zos = zos
+        self.mvsce = mvsce
         self.jobname = jobname.upper()
         self.filename = filename
         self.dataset = dataset.upper()
@@ -1142,6 +1165,14 @@ class ANSITN3270:
             tso = tso_hlasm.format(hlasm=self.hlasm.rstrip())
             if self.tk4:
                 output = tk4_tso_jcl.format(user_job=self.jobname,
+                                     dataset=self.dataset,
+                                     member=self.member,
+                                     date=datetime.today().strftime('%d-%m-%Y'),
+                                     ansi_info=self.ansi_info,
+                                     comd_args=self.command_args,
+                                     tso_hlasm=tso)
+            if self.mvsce:
+                output = mvsce_tso_jcl.format(user_job=self.jobname,
                                      dataset=self.dataset,
                                      member=self.member,
                                      date=datetime.today().strftime('%d-%m-%Y'),
@@ -1604,7 +1635,8 @@ arg_parser.add_argument('--file', help="Save HLASM/JCL to a file instead of STDO
 arg_parser.add_argument('--dataset', help="Location where the assembled art member will be stored, must be a PDS", default='ANSI.ART')
 arg_parser.add_argument('--member', help="Member name of the assembled art that will be placed in --dataset", default='ANSIART')
 arg_parser.add_argument('--jobname', help="The name of the job on the jobcard (e.g. //JOBNAME)", default='AWESOME')
-arg_parser.add_argument('--tk4', help="Generates the required JCL and HLASM to create your program on MVS 3.8j TSO", action='store_true')
+arg_parser.add_argument('--tk4', help="Generates the required JCL and HLASM to create your program on MVS 3.8j TSO TK4-", action='store_true')
+arg_parser.add_argument('--mvsce', help="Generates the required JCL and HLASM to create your program on MVS 3.8j TSO MVS/CE", action='store_true')
 arg_parser.add_argument('--zos', help="Generates the required JCL and HLASM to create your program on z/OS TSO", action='store_true')
 arg_parser.add_argument('--ROW', help="Cursor location for user input row", default="23")
 arg_parser.add_argument('--COL', help="Cursor location for user input column", default="20")
@@ -1619,8 +1651,8 @@ action.add_argument('--sysgen', action='store_true', help='Creates the JCL requi
 action.add_argument('--usstable', action='store_true', help='Creates the JCL to make a USSTABLE')
 args = arg_parser.parse_args()
 
-if args.tso and (not args.tk4 and not args.zos):
-    arg_parser.error("--tso requires either --tk4 or --zos")
+if args.tso and (not args.tk4 and not args.zos and not args.mvsce):
+    arg_parser.error("--tso requires --mvsce, --tk4, or --zos")
 
 if len(args.member) > 8:
     arg_parser.error("Member name: {} must not be longer than 8 characters".format(args.member))
@@ -1653,7 +1685,7 @@ ANSITN3270(ansifile=args.ansi_file,
           jobname=args.jobname, tk4=args.tk4, zos=args.zos,
           row=args.ROW, column=args.COL,input=args.input, color=args.color,
           tso=args.tso, netsol=args.netsol, sysgen=args.sysgen,
-          usstable=args.usstable, extended=args.extended)
+          usstable=args.usstable, extended=args.extended, mvsce=args.mvsce)
 
 
 
